@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎓 Buku Tamu Wisuda — ITB-STIKOM Ambon</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #004080;
+      --primary-dark: #003060;
+      --success: #28a745;
+      --danger: #dc3545;
+      --light: #f8f9fa;
+      --gray: #6c757d;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      color: #222;
+      line-height: 1.6;
+      padding: 15px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      padding: 25px 0 20px;
+    }
+    h1 {
+      font-size: 1.9em;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #555;
+      font-size: 1.15em;
+    }
+    .badge {
+      display: inline-block;
+      background: #1565c0;
+      color: white;
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-size: 1.0em;
+      margin-top: 10px;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 25px;
+      border-bottom: 2px solid #eee;
+    }
+    .tab-btn {
+      padding: 14px 24px;
+      background: none;
+      border: none;
+      font-size: 1.15em;
+      font-weight: 600;
+      color: var(--gray);
+      cursor: pointer;
+      position: relative;
+    }
+    .tab-btn.active {
+      color: var(--primary);
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px 3px 0 0;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      padding: 28px;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 22px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    input, button, select, textarea {
+      width: 100%;
+      padding: 14px;
+      font-size: 17px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 12px;
+    }
+    button:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+    button:disabled {
+      background: #bdbdbd;
+      cursor: not-allowed;
+    }
+
+    .status {
+      padding: 16px;
+      border-radius: 10px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .status.success { background: #e8f5e9; color: #2e7d32; }
+    .status.error { background: #ffebee; color: #c62828; }
+    .status.info { background: #e3f2fd; color: #0d47a1; }
+
+    .qr-section {
+      text-align: center;
+      margin-top: 25px;
+    }
+    #qrcode {
+      display: inline-block;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 0.95em;
+    }
+    .preview-table th,
+    .preview-table td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    .preview-table th {
+      background: #f5f9ff;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .stat-card {
+      background: #e3f2fd;
+      padding: 14px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .stat-label {
+      font-size: 0.9em;
+      color: #555;
+    }
+
+    .footer {
+      text-align: center;
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .tabs { flex-wrap: wrap; }
+      .tab-btn { flex: 1; font-size: 1em; padding: 12px; }
+      h1 { font-size: 1.6em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎓 Buku Tamu Digital</h1>
+      <p class="subtitle">Wisuda ITB-STIKOM Ambon • 27 November 2025</p>
+      <div class="badge">Angkatan X</div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="mahasiswa">Mahasiswa</button>
+      <button class="tab-btn" data-tab="panitia">Panitia</button>
+    </div>
+
+    <!-- 🔹 Tab Mahasiswa -->
+    <div id="mahasiswa" class="tab-content active">
+      <div class="card">
+        <h2>✅ Verifikasi Kehadiran</h2>
+        <p>Masukkan <strong>NIM Anda</strong> untuk generate QR Code kehadiran.</p>
+
+        <div class="form-group">
+          <label for="nim-input">Nomor Induk Mahasiswa (NIM)</label>
+          <input type="text" id="nim-input" placeholder="Contoh: 210101B036" autocomplete="off" autofocus>
+        </div>
+
+        <button id="btn-verif">Verifikasi & Generate QR Code</button>
+
+        <div id="verif-status"></div>
+
+        <div id="qr-result" style="display:none;" class="qr-section">
+          <div id="qrcode"></div>
+          <p id="qr-info" style="margin-top:20px; font-weight:500;"></p>
+          <p style="background:#e3f2fd; padding:14px; border-radius:10px; margin-top:16px;">
+            ✅ Tunjukkan QR Code ini ke petugas untuk absensi.
+          </p>
+        </div>
+
+        <!-- 📊 Statistik Verifikasi -->
+        <div class="card" style="margin-top:30px;">
+          <h3>📊 Statistik Kehadiran</h3>
+          <div class="stats-grid" id="stats-mahasiswa">
+            <!-- Diisi oleh JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🔐 Tab Panitia -->
+    <div id="panitia" class="tab-content" style="display:none;">
+      <!-- Login -->
+      <div id="login-section" class="card">
+        <h2>🔐 Login Panitia</h2>
+        <div class="form-group">
+          <label for="login-user">Username</label>
+          <input type="text" id="login-user" value="panitia" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="login-pass">Password</label>
+          <input type="password" id="login-pass" placeholder="Masukkan password">
+        </div>
+        <button id="btn-login">Masuk</button>
+        <div id="login-status"></div>
+      </div>
+
+      <!-- Panel Panitia -->
+      <div id="panel-panitia" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <h2>🛠️ Panel Panitia</h2>
+          <button id="btn-logout" style="
+            background:#dc3545; padding:6px 16px; font-size:0.95em;
+            border-radius:6px; border:none; color:white; cursor:pointer;
+          ">Logout</button>
+        </div>
+
+        <!-- Upload File -->
+        <div class="card">
+          <h3>📤 Upload Data (XLS/XLSX/CSV)</h3>
+          <div class="form-group">
+            <label for="file-upload">Pilih File</label>
+            <input type="file" id="file-upload" accept=".csv,.xls,.xlsx">
+          </div>
+          <button id="btn-upload" disabled>Upload & Update Data</button>
+          <div id="upload-status"></div>
+        </div>
+
+        <!-- Input Manual -->
+        <div class="card">
+          <h3>✏️ Tambah Data Manual</h3>
+          <div class="form-group">
+            <label for="manual-nim">NIM</label>
+            <input type="text" id="manual-nim" placeholder="210101B036">
+          </div>
+          <div class="form-group">
+            <label for="manual-nama">Nama Lengkap</label>
+            <input type="text" id="manual-nama" placeholder="ACHMAD YUSUP ULATH">
+          </div>
+          <div class="form-group">
+            <label for="manual-prodi">Program Studi</label>
+            <select id="manual-prodi">
+              <option value="S1-TEKNIK INFORMATIKA">S1-TEKNIK INFORMATIKA</option>
+              <option value="S1-SISTEM INFORMASI">S1-SISTEM INFORMASI</option>
+              <option value="S1-PARIWISATA">S1-PARIWISATA</option>
+              <option value="S1-BISNIS DIGITAL">S1-BISNIS DIGITAL</option>
+              <option value="D3-KOMPUTERISASI AKUNTANSI">D3-KOMPUTERISASI AKUNTANSI</option>
+              <option value="D3-MANAJEMEN INFORMATIKA">D3-MANAJEMEN INFORMATIKA</option>
+              <option value="">Lainnya</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="manual-prodi-custom">Prodi (jika lainnya)</label>
+            <input type="text" id="manual-prodi-custom" placeholder="Contoh: S1-ILMU KOMPUTER" disabled>
+          </div>
+          <button id="btn-add-manual">Tambah ke Daftar</button>
+          <div id="manual-status"></div>
+        </div>
+
+        <!-- Download QR -->
+        <div class="card">
+          <h3>📥 Download QR Code</h3>
+          <button id="btn-download-all">📁 ZIP (313 file PNG)</button>
+          <button id="btn-download-pdf" style="margin-top:10px;">🖨️ PDF Booklet (2 QR/halaman)</button>
+          <div id="download-status"></div>
+        </div>
+
+        <!-- 📊 Statistik Verifikasi (untuk panitia) -->
+        <div class="card">
+          <h3>📊 Statistik Kehadiran (Real-time)</h3>
+          <div class="stats-grid" id="stats-panitia">
+            <!-- Diisi oleh JS -->
+          </div>
+        </div>
+
+        <!-- Preview Data -->
+        <div class="card">
+          <h3>📋 Data Terkini: <span id="total-count">313</span> Mahasiswa</h3>
+          <div style="max-height:250px; overflow:auto; border:1px solid #eee; border-radius:8px;">
+            <table class="preview-table">
+              <thead>
+                <tr><th>NIM</th><th>Nama</th><th>Prodi</th></tr>
+              </thead>
+              <tbody id="preview-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>© 2025 Panitia Wisuda ITB-STIKOM Ambon</p>
+      <p><small>Semua data diproses di perangkat Anda — tidak dikirim ke server.</small></p>
+    </div>
+  </div>
+
+  <script>
+    // 🔽 DATA 313 MAHASISWA — LANGSUNG DARI DATA BARU.xlsx
+    let wisudawan = {
+      "210101B036": { "nama": "ACHMAD YUSUP ULATH", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "200102066": { "nama": "ADE ONGEN HITIMALA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C067": { "nama": "AFDHAL ISMAIL", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A007": { "nama": "ALFO TRIVANDA LENGE", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D003": { "nama": "AMRIN ALAMSYAH BUGIS", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B037": { "nama": "ANATASYA PEEA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C068": { "nama": "ANDI SYAHRIANI SAHBAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D098": { "nama": "ANITA RAHMAWATI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E130": { "nama": "ARDIANSYAH EFFENDY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A008": { "nama": "ARY MUHARAF", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B039": { "nama": "ASNI SAMAGA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E131": { "nama": "ASRI ABISELA SOA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D099": { "nama": "ASTI ARIFIN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D100": { "nama": "AUDIO DEAN JORDAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C070": { "nama": "BERLINDA ISTIA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F161": { "nama": "CAMELIA PARY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C071": { "nama": "CINTANI BARMULA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D101": { "nama": "DANA KURNIAPUTRI AHMAD", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C073": { "nama": "DEBY LUSIANTY HUKOM", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E133": { "nama": "DERIUS BROZTITO RENYAAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A011": { "nama": "DESELVI.Y. MAIMINA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C075": { "nama": "DIANA TIA IVANKA TEMMAR", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D102": { "nama": "DIAS MUSTOFA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F163": { "nama": "EGIDIUS YAMREWAV", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B002": { "nama": "EKA NOVRIANTI AMAHORU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A012": { "nama": "EZRA GEORGE HAHURY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B045": { "nama": "FEBRIAN FRANGKLIN LATUE", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C077": { "nama": "FERDY TATANGINDATU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A014": { "nama": "FIRDA ADININGSIH HANDARU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B047": { "nama": "FIRDA SARI ATTAMIMI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C078": { "nama": "FIRMANSYAH RUMATIGA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A004": { "nama": "FITRIANI EFENDI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C079": { "nama": "FIVIN KAIMUDIN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "230101013": { "nama": "FLORENTINA BUARLELI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "190102046": { "nama": "FRANDRI YOSOA BICARA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D104": { "nama": "FRANKLIN MANUHUTU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D105": { "nama": "GABRIELLA MASPAITELLA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E137": { "nama": "GALUH SARASWATY SOUHOKA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F166": { "nama": "GERALTH P. A. LAKBURLAWAL", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E139": { "nama": "GITA SANDI ANGKOTASAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F167": { "nama": "GUSTI RADO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A016": { "nama": "HAFIZT SAIFULLOH ROMADHON", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B048": { "nama": "HASANUDIN SUKUNORA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F168": { "nama": "HENNY LATUMAHINA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B049": { "nama": "IFANTY LAWALATA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C080": { "nama": "IIS ALFARIS", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B050": { "nama": "IMAM AHMAD", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B051": { "nama": "IMMANUEL GABRIEL RUMPUIN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A019": { "nama": "INA RAHAYU KILWOUW", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D108": { "nama": "INADYA FIONESYA LATUPEIRISSA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E141": { "nama": "INDA NURIYAH SANGADJI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F170": { "nama": "INTAN KOMALASARI GANI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A020": { "nama": "INVIOLATA NGUTRA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D109": { "nama": "IRPAN SOMBALATU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C082": { "nama": "ISRAYATI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E142": { "nama": "ISTIANTORO PRASETYO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D110": { "nama": "JANES MARYON SILOOY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E143": { "nama": "JOSIA IBRANDO SILUBUN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D111": { "nama": "JUNARIA MARIA INGGRID TIOTOR", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E144": { "nama": "JUNETEN R LUHULIMA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F172": { "nama": "JUNIANSYAH ABDUL R SOULISA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A021": { "nama": "KASMAWATI KELEDAR", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "230101050": { "nama": "KUSRANGGI LEGOWO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A022": { "nama": "LA ODE MUHAMMAD AKBAR", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B053": { "nama": "LA ODE RAMA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C083": { "nama": "LA SYAHRUL", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B055": { "nama": "LODIA MANUATA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B057": { "nama": "MARCHEL GERALD SIHASALE", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E145": { "nama": "MATELDA ROSDIANA RELIUBUN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F176": { "nama": "MA'WA TARIBUKA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C085": { "nama": "MENANA WALALAYO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A025": { "nama": "MIRANDA HIPOLITA HELENA KANARUBUN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B058": { "nama": "MITRA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D113": { "nama": "MIZMOR PETER BIENVICLAN SAPULETTE", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C086": { "nama": "MUDRIKATUL QAMARIAH", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "190101085": { "nama": "MUH RIZKI KELILAUW", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C087": { "nama": "MUHAMAD BAHMAN KILBAREN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D112": { "nama": "MUHAMMAD ALI AKBAR TIANOTAK", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D114": { "nama": "MUHAMMAD FATAHILLAH", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A023": { "nama": "MUHAMMAD NORMAN THOHIR", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F177": { "nama": "MUHAMMAD RAIHAN NADHIF ZHAFRAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D115": { "nama": "MUJIANI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E149": { "nama": "MUSTIKA PURNAMASARI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F178": { "nama": "NADILA MADO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A026": { "nama": "NADILLA AMILUDDIN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B043": { "nama": "NADIRA ABUBAKAR LU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C088": { "nama": "NAIFAH NISA SYARIPUDIN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E150": { "nama": "NI LUH PUTU AYU CAHYANI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C089": { "nama": "NIRSAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D128": { "nama": "NUR AINI TARMUN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A027": { "nama": "NUR NASTIA NINGSI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B060": { "nama": "NUR SAFITRI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F180": { "nama": "ONYA NURTITA FATMALA NURLETTE", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A028": { "nama": "PRISILIA LOUHENAPESSY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D117": { "nama": "RAHMAD R. WASUWAMBA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A029": { "nama": "RENOL LABOBAR", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F183": { "nama": "RIA ANGRIANY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A030": { "nama": "RIDWAN BIN TAHER", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A031": { "nama": "RIZKA UTAMI GAILEA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B062": { "nama": "RIZKI KAMELIA AZIS", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C090": { "nama": "ROLLAN REZKY RAHANTOKNAM", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D118": { "nama": "ROSMITA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E154": { "nama": "SAADA PRASASTI SAMAL", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F184": { "nama": "SAFIYANI", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E138": { "nama": "SALSABILA LAITUPA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A032": { "nama": "SAMSUL BAHRI RUMADAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A033": { "nama": "SARMILA SANIAPON", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B064": { "nama": "SERNI POKION MAOLLO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D121": { "nama": "SITI AMINA TUANANY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D122": { "nama": "SITI JAYANI AHMAD", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E156": { "nama": "SITI NATI RUMALEAN", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101B065": { "nama": "SUHARDI TJIRA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F187": { "nama": "SULASTRI SATRIANI BHAYANGKARA KEMANG", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D123": { "nama": "SULHAM SAHID", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C094": { "nama": "SUNITA TUHUTERU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101A034": { "nama": "TANIA DERKU", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E158": { "nama": "ULAN AISAH SARI TINAMBA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101F189": { "nama": "VEBRY WATTIMENA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D126": { "nama": "WA HASNIA RUMBIA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C095": { "nama": "WA YURNA LIPUOGENA", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101C096": { "nama": "WINDI TAKIMPO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101D124": { "nama": "WOM SUMIDRI TIWERY", "prodi": "S1-TEKNIK INFORMATIKA" },
+      "210101E159": { "nama": "YULIANA A. MARKINDO", "prodi": "S1-TEKNIK INFORMATIKA" },
+      
+      // Sistem Informasi (diperbaiki typo)
+      "210102D001": { "nama": "ABDUL GAPUR REHALAT", "prodi": "S1-SISTEM INFORMASI" },
+      "210102F164": { "nama": "ABDUL MUHAMMAD JIHAD", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D110": { "nama": "ABDUL RAHMAN WAHID TIANLEAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A025": { "nama": "ADAM SANGAJI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D002": { "nama": "ADELIA PUTRI FAIRUZIAH ARIFIN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C003": { "nama": "ADILA OPIER", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B053": { "nama": "ADRIAN ASIKIN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C004": { "nama": "AFINA SUNETH", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C084": { "nama": "ALDI PRATAMA TAMBUNAL", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B017": { "nama": "ALDI SAHIM UMAGAP", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A026": { "nama": "ALFARIS KAY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A012": { "nama": "ALI RINALDY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E139": { "nama": "ALIFYAH RIFDANIA WALLY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E140": { "nama": "ALINSHIA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D112": { "nama": "AMHAR GHAZALI RUMAKWAY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A028": { "nama": "ANDHINI", "prodi": "S1-SISTEM INFORMASI" },
+      "230102027": { "nama": "ANGEL FARENSIA MAILOPUW", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E018": { "nama": "ARJUN UMASUGI", "prodi": "S1-SISTEM INFORMASI" },
+      "230102053": { "nama": "BASRI ODE", "prodi": "S1-SISTEM INFORMASI" },
+      "210102005": { "nama": "CLARA TULASEKET", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E006": { "nama": "DAFFAH AKDHAN MUFID MAHULAUW", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E142": { "nama": "DIAN WARHANGAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D115": { "nama": "DIEGO ERENS MAITIMU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A009": { "nama": "DINA MUSRIANA MUSRIN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E143": { "nama": "DOURSTYGO NOVENRY LESNUSSA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C087": { "nama": "FADHILA DWI PUTRI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D116": { "nama": "FADILA YUSUF WAKANO", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C088": { "nama": "FAJRIL SARIDJAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B008": { "nama": "FANISA AMALIA BACHDAR", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A020": { "nama": "FARDIN MAHU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D117": { "nama": "FARHAN RIZKY ALAMSYAH", "prodi": "S1-SISTEM INFORMASI" },
+      "210102F182": { "nama": "FARZI ASWARI LIPUGENA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E144": { "nama": "FAUZAN A. ASHARY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A035": { "nama": "FHENY EMI RANTI RHACH BANGGAI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D019": { "nama": "FRAMUDITA WALIULU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102F166": { "nama": "FRANKI SATUMALAY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B061": { "nama": "GEINY ELTON WATTIMENA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C089": { "nama": "GIAN ARIEL MAITIMU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C090": { "nama": "GISELLE THENU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D118": { "nama": "GODBLESS JOVRANCOB RIRY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B062": { "nama": "GUNAWAN MARA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C091": { "nama": "GUNAWAN TALESSY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D119": { "nama": "HABIBI LA MARNO", "prodi": "S1-SISTEM INFORMASI" },
+      "230102059": { "nama": "HERDAJANI BIN UMAR", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E146": { "nama": "IKHSAN ATTAMIMI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E147": { "nama": "INTAN DWI SAFITRI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A037": { "nama": "INTAN NURAINI RISAHONDUA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B064": { "nama": "INTAN WIDIARTI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A038": { "nama": "IRFAN TARABUBUN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C021": { "nama": "IRWANTI GANI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C092": { "nama": "JAZILSYAH ACHMAD", "prodi": "S1-SISTEM INFORMASI" },
+      "230102030": { "nama": "JHONI LASSOL", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D120": { "nama": "JIBRAN MUHAMMAD CHUMEINI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E148": { "nama": "JIHAD AKBAR", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C093": { "nama": "JUBEDA KWAIRUMASABANDAR", "prodi": "S1-SISTEM INFORMASI" },
+      "210102F170": { "nama": "KRISTIANTO PESIRERON", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B066": { "nama": "LA ODE ASNAWI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B067": { "nama": "LEONEL R. SARIWATING", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D122": { "nama": "M.RAHMAT. HI. FARDAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E150": { "nama": "MARTHA NITA MAROKO", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C011": { "nama": "MEGA AULIA WALIULU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C095": { "nama": "MELKIANUS KILUNRESSY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E151": { "nama": "MEYLANI NURLETTE", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B068": { "nama": "MUHAMMAD HAIKAL PELU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C094": { "nama": "MUHAMMAD NASRUL SYAMSUDIN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C096": { "nama": "MUHAMMAD WAHYU BOFTEN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D124": { "nama": "MUHAMMAD ZAMIL ODE", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D023": { "nama": "MURSALIM KELIWIDA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A041": { "nama": "MUSDALIFAH MOTOREJO", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B069": { "nama": "MUTHIA SYAHRANI SABAR", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C097": { "nama": "NADIA TESLATU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D125": { "nama": "NETHANIEL LATTU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E152": { "nama": "NINGRUM RORO ALAM PARY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A042": { "nama": "NUR AFIA ISRAM", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C098": { "nama": "NUR FITRI OHORELLA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D127": { "nama": "NUR NINGSIH AIHUNAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E153": { "nama": "NURIATI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E022": { "nama": "NURMILA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A013": { "nama": "ODE ERMA RAFIKA", "prodi": "S1-SISTEM INFORMASI" },
+      "230102123": { "nama": "PATRICK ARMANDO MANUSIWA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B071": { "nama": "PUTRI MASYA BAKKER", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C099": { "nama": "PUTRI NIRMALA UMAKAAPA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B179": { "nama": "PUTRI S. MULYANI MASUKU", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D128": { "nama": "RABIATUL A. POLPOKE", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E155": { "nama": "RACHMA ANDRIANI SUSANTY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E156": { "nama": "RAHMAN ZIDAN UMARELLA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A044": { "nama": "RAHMAWATI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B072": { "nama": "RAHMIYATI RAHAWARIN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C100": { "nama": "REGITHA CHAYANI KADIR", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D129": { "nama": "REYHANDAYUNI ARUM SAPUTRA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E157": { "nama": "RIA RAFA RAFSANJANI BARGES", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B073": { "nama": "RIDWAN ARIF ELIAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C101": { "nama": "RIKLAN SOUMENA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A046": { "nama": "RISKA ARSITA LA DJAHAMI", "prodi": "S1-SISTEM INFORMASI" },
+      "190102107": { "nama": "RISKY", "prodi": "S1-SISTEM INFORMASI" },
+      "230102010": { "nama": "RISMA JAYA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B074": { "nama": "RISNA GAULIA BASRI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E014": { "nama": "SAID SUBHAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C102": { "nama": "SALLY FIRDAUS", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B075": { "nama": "SANTJI ROSA MARSANDA UREL", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D183": { "nama": "SAPUTRA WALIULU", "prodi": "S1-SISTEM INFORMASI" },
+      "230102124": { "nama": "SARAH LUKMAN SYEBAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D131": { "nama": "SARNI WATI SANIAPON", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B015": { "nama": "SAVIRA WAEL", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E158": { "nama": "SELVIA TOMIA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C103": { "nama": "SHANIA KARESINA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A049": { "nama": "SITI RUBIA ASAWALA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E016": { "nama": "SITI YUDILA MAKATITA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E159": { "nama": "SITNA AYU REHALAT", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B076": { "nama": "SITTI AISYAH FADILAH MUHSIT", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A036": { "nama": "SRI FIDIHA LESSY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C104": { "nama": "SRI TITIN MISDIYANTO", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D132": { "nama": "SUKAINAH MARASABESSY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E160": { "nama": "SUTRIA KAIMUDIN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B077": { "nama": "SUYETNO TANIKWELY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B078": { "nama": "SYAERINI ASRIANTI ZAMRAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C105": { "nama": "SYILFA APRIYANI ATHARIQ", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D133": { "nama": "TIARA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E161": { "nama": "TITIN SUYANTI WOLIO", "prodi": "S1-SISTEM INFORMASI" },
+      "210102A052": { "nama": "UMMIHAN HASAN", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E163": { "nama": "UNTARIAN SARI", "prodi": "S1-SISTEM INFORMASI" },
+      "210101B066": { "nama": "VIKRY SERANG", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C107": { "nama": "WA FITA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D134": { "nama": "WA ODE NURMI", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C108": { "nama": "WINDA MAULANI MOSSY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102B081": { "nama": "YOPY HENDRIKS", "prodi": "S1-SISTEM INFORMASI" },
+      "210102C109": { "nama": "YOSSARTO MESAKH POHE", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D135": { "nama": "YULINDA TIARA UNAWEKLA", "prodi": "S1-SISTEM INFORMASI" },
+      "210102E162": { "nama": "ZENDREEY ACREN LEKATOMPESSY", "prodi": "S1-SISTEM INFORMASI" },
+      "210102D137": { "nama": "ZUBAIDAH USEMAHU", "prodi": "S1-SISTEM INFORMASI" },
+      
+      // Pariwisata
+      "210105001": { "nama": "ANDI NILAN BASO RUMASUKUN", "prodi": "S1-PARIWISATA" },
+      "210105003": { "nama": "EUGENE ANGELICA CASELEY TANIARS", "prodi": "S1-PARIWISATA" },
+      "230105006": { "nama": "FARAH GRACE MAINAKE", "prodi": "S1-PARIWISATA" },
+      "210105004": { "nama": "FATAHILLAH ABABIL", "prodi": "S1-PARIWISATA" },
+      "210105005": { "nama": "FELIX MARIO KADEM NGAMEL", "prodi": "S1-PARIWISATA" },
+      "210105009": { "nama": "HERVIN DE FRETES", "prodi": "S1-PARIWISATA" },
+      "210105006": { "nama": "INA JOHRANY LESTALUHU", "prodi": "S1-PARIWISATA" },
+      "210105019": { "nama": "INDAH JULIANA SIA", "prodi": "S1-PARIWISATA" },
+      "210105021": { "nama": "MURNI YANTI MONI", "prodi": "S1-PARIWISATA" },
+      "210105012": { "nama": "RIYANA ABDURAHIM UMAR", "prodi": "S1-PARIWISATA" },
+      "210105013": { "nama": "RODI GANI", "prodi": "S1-PARIWISATA" },
+      "210105014": { "nama": "SINDI UTARI LAIN", "prodi": "S1-PARIWISATA" },
+      "210105016": { "nama": "SITI SALWIYAH RAHMA JAFAR", "prodi": "S1-PARIWISATA" },
+      "210105015": { "nama": "SITTI NURKHASANA LOUK", "prodi": "S1-PARIWISATA" },
+      "210105018": { "nama": "WINDA KWALOMINE", "prodi": "S1-PARIWISATA" },
+      
+      // Bisnis Digital
+      "210106004": { "nama": "ANACE FLORENCE ABRAHAMSZ", "prodi": "S1-BISNIS DIGITAL" },
+      "210106002": { "nama": "ANGELAICHA JOLANDA SAMEHE", "prodi": "S1-BISNIS DIGITAL" },
+      "210106006": { "nama": "AYUN RUMAGUTAWAN", "prodi": "S1-BISNIS DIGITAL" },
+      "210106007": { "nama": "DEVANA SABATINI TUHULERUW", "prodi": "S1-BISNIS DIGITAL" },
+      "210106008": { "nama": "FIKA MARYAM ATTAMIMI", "prodi": "S1-BISNIS DIGITAL" },
+      "210106009": { "nama": "GRANATHASIA WENNO", "prodi": "S1-BISNIS DIGITAL" },
+      "210106025": { "nama": "IDELFONSIUS SAMANGUN", "prodi": "S1-BISNIS DIGITAL" },
+      "210106011": { "nama": "JIHAN MASITA SANIAPON", "prodi": "S1-BISNIS DIGITAL" },
+      "210106012": { "nama": "JULIO SOUHUWAT", "prodi": "S1-BISNIS DIGITAL" },
+      "210106016": { "nama": "MUHAMMAD ARIF RISALDY SABILILLAH PARERA", "prodi": "S1-BISNIS DIGITAL" },
+      "210106013": { "nama": "MUHAMMAD RIFKY SAPUTRA", "prodi": "S1-BISNIS DIGITAL" },
+      "210106025": { "nama": "RISMAN NACIKIT", "prodi": "S1-BISNIS DIGITAL" },
+      "210106020": { "nama": "SERPIN PATTY", "prodi": "S1-BISNIS DIGITAL" },
+      "210106021": { "nama": "SINTA BEHUKU", "prodi": "S1-BISNIS DIGITAL" },
+      "210106012": { "nama": "SURANDI SIOLIMBONA", "prodi": "S1-BISNIS DIGITAL" },
+      "210106011": { "nama": "ZULFIKAR MUHAMMAD HASSAN", "prodi": "S1-BISNIS DIGITAL" },
+      
+      // D3 Komputerisasi Akuntansi
+      "220204007": { "nama": "ADINA HULIS HULIS", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204005": { "nama": "AHMAD FAHREZY RIZALDY THOMIA", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204004": { "nama": "AZAN WEAR", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204019": { "nama": "DESI WAEL", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204020": { "nama": "ELISABETH PESIWARISSA", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204009": { "nama": "HALIMA NAYA", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204014": { "nama": "INDAH WAHYUNI KANYOMA", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204012": { "nama": "JIHAN TAN", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204008": { "nama": "MAWARNI ODE", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204002": { "nama": "NUR SYAFITRI", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204011": { "nama": "NURCAHYA HUSEIN", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204010": { "nama": "NURFADILA RUMAU", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204003": { "nama": "NURHAIDA TUANANY", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204017": { "nama": "RUSTI", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204006": { "nama": "SABRIA RATNA FIQKA", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204018": { "nama": "SAPRIL KAISUPY", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204022": { "nama": "SILFA ADI PUTRI SAMETH", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204001": { "nama": "SRI RAMAWATI KAIMUDIN", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      "220204023": { "nama": "YUNARDI R SEPTORY", "prodi": "D3-KOMPUTERISASI AKUNTANSI" },
+      
+      // D3 Manajemen Informatika
+      "220203002": { "nama": "ABDUL SAHRUN TAUDU", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203022": { "nama": "AMELIA MANILET", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203024": { "nama": "FIRDAUS USMAN JUMAT", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203005": { "nama": "FITRA ABDULLAH", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203006": { "nama": "LILIANI ALWANI", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203020": { "nama": "MARNO MELKIOR SONGUPNUAN", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203004": { "nama": "MARSYA ANG", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203012": { "nama": "SAFIRA KAFARA", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203001": { "nama": "SOFIATUN", "prodi": "D3-MANAJEMEN INFORMATIKA" },
+      "220203016": { "nama": "WIRDA APRILIA TANGKA ALAM", "prodi": "D3-MANAJEMEN INFORMATIKA" }
+    };
+
+    // State untuk pelacakan kehadiran
+    let verifikasiLog = new Set(); // menyimpan NIM yang sudah verifikasi
+    let panitiaLoggedIn = false;
+
+    // DOM
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const nimInput = document.getElementById('nim-input');
+    const btnVerif = document.getElementById('btn-verif');
+    const verifStatus = document.getElementById('verif-status');
+    const qrResult = document.getElementById('qr-result');
+    const qrcodeDiv = document.getElementById('qrcode');
+    const qrInfo = document.getElementById('qr-info');
+    const statsMahasiswa = document.getElementById('stats-mahasiswa');
+    const statsPanitia = document.getElementById('stats-panitia');
+    const loginSection = document.getElementById('login-section');
+    const panelPanitia = document.getElementById('panel-panitia');
+    const loginStatus = document.getElementById('login-status');
+    const fileUpload = document.getElementById('file-upload');
+    const btnUpload = document.getElementById('btn-upload');
+    const uploadStatus = document.getElementById('upload-status');
+    const previewBody = document.getElementById('preview-body');
+    const totalCount = document.getElementById('total-count');
+
+    // Prodi list (urut sesuai prioritas)
+    const prodiList = [
+      "S1-TEKNIK INFORMATIKA",
+      "S1-SISTEM INFORMASI",
+      "S1-PARIWISATA",
+      "S1-BISNIS DIGITAL",
+      "D3-KOMPUTERISASI AKUNTANSI",
+      "D3-MANAJEMEN INFORMATIKA"
+    ];
+
+    // Tab switching
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-tab');
+        tabBtns.forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        btn.classList.add('active');
+        document.getElementById(target).style.display = 'block';
+        if (target === 'panitia' && !panitiaLoggedIn) {
+          loginSection.style.display = 'block';
+          panelPanitia.style.display = 'none';
+        }
+      });
+    });
+
+    // === Mahasiswa: Verifikasi NIM ===
+    btnVerif.addEventListener('click', verifyByNIM);
+    nimInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') verifyByNIM();
+    });
+
+    function verifyByNIM() {
+      const nim = nimInput.value.trim().toUpperCase();
+      verifStatus.innerHTML = '';
+      qrResult.style.display = 'none';
+
+      if (!nim) {
+        showStatus(verifStatus, '⚠️ Masukkan NIM Anda.', 'error');
+        return;
+      }
+
+      const mhs = wisudawan[nim];
+      if (!mhs) {
+        showStatus(verifStatus, `✗ NIM <strong>${nim}</strong> tidak terdaftar.`, 'error');
+        return;
+      }
+
+      // Catat ke log verifikasi
+      verifikasiLog.add(nim);
+
+      generateQRCode(nim, mhs.nama, mhs.prodi);
+      showStatus(verifStatus, '✓ QR Code berhasil dibuat!', 'success');
+      qrResult.style.display = 'block';
+
+      // Update statistik
+      updateStats();
+    }
+
+    function generateQRCode(nim, nama, prodi) {
+      qrcodeDiv.innerHTML = '';
+      const qrText = `WISUDA-ITB-STIKOM-AMBON|${nim}|${nama}|${prodi}|27-11-2025|ANGKATAN-X`;
+      try {
+        new QRCode(qrcodeDiv, {
+          text: qrText,
+          width: 240,
+          height: 240,
+          colorDark: "#000",
+          colorLight: "#fff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+        qrInfo.innerHTML = `<strong>${nama}</strong><br>${prodi}`;
+      } catch (e) {
+        showStatus(verifStatus, 'Gagal membuat QR Code.', 'error');
+      }
+    }
+
+    function showStatus(el, msg, type = 'info') {
+      const cls = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+      el.innerHTML = `<div class="status ${cls}">${msg}</div>`;
+    }
+
+    // === Hitung statistik ===
+    function updateStats() {
+      // Hitung total per prodi
+      const stats = {};
+      prodiList.forEach(p => stats[p] = 0);
+
+      verifikasiLog.forEach(nim => {
+        const mhs = wisudawan[nim];
+        if (mhs && stats[mhs.prodi] !== undefined) {
+          stats[mhs.prodi]++;
+        }
+      });
+
+      const totalVerif = verifikasiLog.size;
+      const totalData = Object.keys(wisudawan).length;
+
+      // Update UI Mahasiswa
+      let statsHtml = `<div class="stat-card"><div class="stat-number">${totalVerif}</div><div class="stat-label">Total Hadir</div></div>`;
+      prodiList.forEach(prodi => {
+        const count = stats[prodi];
+        statsHtml += `<div class="stat-card"><div class="stat-number">${count}</div><div class="stat-label">${prodi.split('-')[1] || prodi}</div></div>`;
+      });
+      statsMahasiswa.innerHTML = statsHtml;
+
+      // Jika panitia login, update juga di sana
+      if (panitiaLoggedIn) {
+        statsPanitia.innerHTML = statsHtml;
+      }
+    }
+
+    // === Panitia: Login ===
+    document.getElementById('btn-login').addEventListener('click', () => {
+      const u = document.getElementById('login-user').value.trim();
+      const p = document.getElementById('login-pass').value.trim();
+      
+      if (u === 'panitia' && p === 'wibux2025') {
+        panitiaLoggedIn = true;
+        loginSection.style.display = 'none';
+        panelPanitia.style.display = 'block';
+        refreshPreview();
+        updateStats(); // pastikan stats muncul
+        loginStatus.innerHTML = '';
+      } else {
+        showStatus(loginStatus, 'Username atau password salah.', 'error');
+      }
+    });
+
+    document.getElementById('login-pass').addEventListener('keyup', e => {
+      if (e.key === 'Enter') document.getElementById('btn-login').click();
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      panitiaLoggedIn = false;
+      panelPanitia.style.display = 'none';
+      loginSection.style.display = 'block';
+      document.getElementById('login-pass').value = '';
+    });
+
+    // === Upload & Input Manual (sama seperti sebelumnya) ===
+    fileUpload.addEventListener('change', () => {
+      btnUpload.disabled = !fileUpload.files.length;
+    });
+
+    document.getElementById('btn-upload').addEventListener('click', () => {
+      const file = fileUpload.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          let dataRows = [];
+          if (file.name.endsWith('.csv')) {
+            const wb = XLSX.read(e.target.result, { type: 'string' });
+            dataRows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+          } else {
+            const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+            dataRows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+          }
+
+          if (dataRows.length < 2) throw new Error();
+
+          const headers = dataRows[0].map(h => (h || '').toString().trim().toLowerCase());
+          const nimIdx = headers.findIndex(h => h.includes('nim'));
+          const namaIdx = headers.findIndex(h => h.includes('nama'));
+          const prodiIdx = headers.findIndex(h => h.includes('prodi'));
+
+          if (nimIdx === -1 || namaIdx === -1) {
+            throw new Error('Kolom "nim" dan "nama" wajib ada.');
+          }
+
+          let added = 0, updated = 0;
+          for (let i = 1; i < dataRows.length; i++) {
+            const row = dataRows[i];
+            if (!Array.isArray(row)) continue;
+            const nim = (row[nimIdx] || '').toString().trim().toUpperCase();
+            const nama = (row[namaIdx] || '').toString().replace(/\s+/g, ' ').trim();
+            const prodi = (row[prodiIdx] || '').toString().replace(/\s+/g, ' ').trim();
+            if (!nim || !nama) continue;
+
+            if (wisudawan[nim]) updated++;
+            else added++;
+            wisudawan[nim] = { nama, prodi };
+          }
+
+          refreshPreview();
+          updateStats();
+          showStatus(uploadStatus, `✓ ${added} ditambahkan, ${updated} diperbarui. Total: ${Object.keys(wisudawan).length}`, 'success');
+        } catch (err) {
+          console.error(err);
+          showStatus(uploadStatus, '❌ Gagal memproses file. Format: XLS/XLSX/CSV.', 'error');
+        }
+      };
+
+      if (file.name.endsWith('.csv')) reader.readAsText(file, 'utf-8');
+      else reader.readAsArrayBuffer(file);
+    });
+
+    const prodiSelect = document.getElementById('manual-prodi');
+    const prodiCustom = document.getElementById('manual-prodi-custom');
+    prodiSelect.addEventListener('change', () => {
+      prodiCustom.disabled = prodiSelect.value !== '';
+    });
+
+    document.getElementById('btn-add-manual').addEventListener('click', () => {
+      const nim = document.getElementById('manual-nim').value.trim().toUpperCase();
+      const nama = document.getElementById('manual-nama').value.trim();
+      let prodi = prodiSelect.value;
+      if (!prodi) prodi = prodiCustom.value.trim();
+
+      const statusEl = document.getElementById('manual-status');
+
+      if (!nim || !nama || !prodi) {
+        showStatus(statusEl, 'Semua kolom wajib diisi.', 'error');
+        return;
+      }
+
+      if (wisudawan[nim]) {
+        wisudawan[nim] = { nama, prodi };
+        showStatus(statusEl, `✓ Data ${nim} diperbarui.`, 'success');
+      } else {
+        wisudawan[nim] = { nama, prodi };
+        showStatus(statusEl, `✓ Data ${nim} ditambahkan.`, 'success');
+      }
+
+      document.getElementById('manual-nim').value = '';
+      document.getElementById('manual-nama').value = '';
+      prodiSelect.value = 'S1-TEKNIK INFORMATIKA';
+      prodiCustom.value = '';
+      prodiCustom.disabled = true;
+
+      refreshPreview();
+      updateStats();
+    });
+
+    // === Download QR Massal ===
+    document.getElementById('btn-download-all').addEventListener('click', async () => {
+      const statusEl = document.getElementById('download-status');
+      statusEl.innerHTML = '<div class="status info">Mempersiapkan ZIP... Mohon tunggu.</div>';
+      
+      try {
+        const zip = new JSZip();
+        const nims = Array.from(verifikasiLog).length > 0 ? Array.from(verifikasiLog) : Object.keys(wisudawan);
+        const totalCount = nims.length;
+        
+        for (let i = 0; i < nims.length; i++) {
+          const nim = nims[i];
+          const mhs = wisudawan[nim];
+          if (!mhs) continue;
+          const qrText = `WISUDA-ITB-STIKOM-AMBON|${nim}|${mhs.nama}|${mhs.prodi}|27-11-2025|ANGKATAN-X`;
+          
+          const canvas = document.createElement('canvas');
+          canvas.width = 512; canvas.height = 512;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, 512, 512);
+          
+          const qr = QRCode.create(qrText, { errorCorrectionLevel: 'H' });
+          const cells = qr.modules;
+          const cellSize = Math.floor(512 / cells.length);
+          ctx.fillStyle = '#000000';
+          for (let r = 0; r < cells.length; r++) {
+            for (let c = 0; c < cells.length; c++) {
+              if (cells[r][c]) {
+                ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+              }
+            }
+          }
+          
+          const dataUrl = canvas.toDataURL('image/png');
+          const base64Data = dataUrl.split(',')[1];
+          zip.file(`${nim}.png`, base64Data, { base64: true });
+        }
+        
+        const content = await zip.generateAsync({ type: 'blob' });
+        saveAs(content, `QR_Wisuda_ITB-STIKOM_${new Date().toISOString().slice(0,10)}.zip`);
+        showStatus(statusEl, `✓ Berhasil! ${totalCount} QR Code disimpan dalam ZIP.`, 'success');
+      } catch (e) {
+        console.error(e);
+        showStatus(statusEl, 'Gagal membuat ZIP. Coba lagi.', 'error');
+      }
+    });
+
+    // === PDF Booklet ===
+    document.getElementById('btn-download-pdf').addEventListener('click', async () => {
+      const statusEl = document.getElementById('download-status');
+      statusEl.innerHTML = '<div class="status info">Membuat PDF... Mohon tunggu (±30 detik).</div>';
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('portrait', 'mm', 'a4');
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const margin = 20;
+        const qrSize = 80;
+        const spacing = 10;
+
+        const nims = Array.from(verifikasiLog).length > 0 ? Array.from(verifikasiLog) : Object.keys(wisudawan);
+        const entries = nims.map(nim => ({ nim, ...wisudawan[nim] })).filter(e => e.nim);
+
+        for (let i = 0; i < entries.length; i += 2) {
+          if (i > 0) doc.addPage();
+
+          if (i < entries.length) {
+            const { nim: n1, nama: na1, prodi: p1 } = entries[i];
+            const txt1 = `WISUDA-ITB-STIKOM-AMBON|${n1}|${na1}|${p1}|27-11-2025|ANGKATAN-X`;
+            await drawQRToPDF(doc, margin, margin, qrSize, txt1, n1, na1, p1);
+          }
+
+          if (i + 1 < entries.length) {
+            const { nim: n2, nama: na2, prodi: p2 } = entries[i + 1];
+            const txt2 = `WISUDA-ITB-STIKOM-AMBON|${n2}|${na2}|${p2}|27-11-2025|ANGKATAN-X`;
+            await drawQRToPDF(doc, pageWidth - margin - qrSize, margin, qrSize, txt2, n2, na2, p2);
+          }
+        }
+
+        doc.save(`QR_Booklet_Wisuda_ITB-STIKOM_${new Date().toISOString().slice(0,10)}.pdf`);
+        showStatus(statusEl, `✓ PDF booklet (${entries.length} QR) berhasil dibuat!`, 'success');
+      } catch (e) {
+        console.error(e);
+        showStatus(statusEl, '❌ Gagal membuat PDF. Gunakan Chrome.', 'error');
+      }
+    });
+
+    function drawQRToPDF(doc, x, y, size, text, nim, nama, prodi) {
+      return new Promise((resolve) => {
+        const canvas = document.createElement('canvas');
+        const pxSize = Math.floor(size * 3.78);
+        canvas.width = pxSize;
+        canvas.height = pxSize;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, pxSize, pxSize);
+        const qr = QRCode.create(text, { errorCorrectionLevel: 'H' });
+        const cells = qr.modules;
+        const cellSize = Math.floor(pxSize / cells.length);
+        ctx.fillStyle = '#000000';
+        for (let r = 0; r < cells.length; r++) {
+          for (let c = 0; c < cells.length; c++) {
+            if (cells[r][c]) {
+              ctx.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+        const imgData = canvas.toDataURL('image/png');
+        doc.addImage(imgData, 'PNG', x, y, size, size);
+        const startY = y + size + 5;
+        doc.setFont('helvetica', 'bold').setFontSize(10);
+        doc.text(`NIM: ${nim}`, x + size/2, startY, { align: 'center' });
+        doc.setFont('helvetica', 'normal').setFontSize(9);
+        const linesNama = doc.splitTextToSize(nama, size);
+        doc.text(linesNama, x + size/2, startY + 6, { align: 'center' });
+        doc.setFontSize(8);
+        doc.text(prodi, x + size/2, startY + 6 + linesNama.length * 4, { align: 'center' });
+        resolve();
+      });
+    }
+
+    // Refresh preview data
+    function refreshPreview() {
+      previewBody.innerHTML = '';
+      const entries = Object.entries(wisudawan).slice(0, 50);
+      entries.forEach(([nim, mhs]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${nim}</td><td>${mhs.nama}</td><td>${mhs.prodi}</td>`;
+        previewBody.appendChild(tr);
+      });
+      totalCount.textContent = Object.keys(wisudawan).length;
+    }
+
+    // Init
+    updateStats(); // tampilkan statistik awal (0/313)
+  </script>
+</body>
+</html>
